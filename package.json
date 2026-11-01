@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bridge": "node bridge/server.js"
+    "bridge": "node bridge/server.js",
+    "check": "node scripts/check.mjs"
   },
   "engines": { "node": ">=20" }
 }
