@@ -1,0 +1,46 @@
+:root { color-scheme: light dark; --accent: #e5322d; --muted: #888; --line: #8884; font: 14px/1.45 system-ui, sans-serif; }
+body { margin: 0; width: 380px; }
+main { padding: 14px 16px 16px; }
+header { display: flex; align-items: center; gap: 8px; }
+h1 { font-size: 18px; margin: 0; flex: none; }
+.pill { font-size: 12px; padding: 1px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill.ok { color: #2a8; border-color: #2a8; }
+.pill.bad { color: var(--accent); border-color: var(--accent); }
+#changeKey { font-size: 12px; color: var(--muted); }
+a { color: inherit; }
+.notice { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 8px; display: grid; gap: 8px; }
+.notice p { margin: 0; }
+.error { color: var(--accent); font-size: 13px; }
+.error:empty { display: none; }
+.hint { color: var(--muted); font-size: 12px; margin: 0; }
+#form { margin-top: 14px; display: grid; gap: 10px; }
+#form > label { font-weight: 600; }
+textarea, input[type=number], input[type=password] { font: inherit; padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; min-width: 0; }
+textarea { resize: vertical; }
+summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+details[open] summary { margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+.toggles { display: grid; gap: 2px; margin-top: 8px; font-size: 13px; }
+.actions { display: flex; align-items: center; gap: 10px; }
+button { font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+button.secondary { background: transparent; color: inherit; border: 1px solid var(--line); }
+#estimate { color: var(--muted); font-size: 12px; margin: 0; }
+#run { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+#steps { padding-left: 20px; margin: 0; display: grid; gap: 3px; font-size: 13px; }
+#steps li { color: var(--muted); }
+#steps li.active { color: inherit; font-weight: 600; }
+#steps li.done { color: inherit; }
+#steps li.done::marker { content: '✓  '; color: #2a8; }
+#steps li.failed { color: var(--accent); }
+#steps li.skipped { text-decoration: line-through; }
+#steps .detail { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+#progress { height: 5px; background: var(--line); border-radius: 3px; margin: 12px 0 6px; overflow: hidden; }
+#bar { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+#summary { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+#channels { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
+#channels li { display: grid; grid-template-columns: 1fr auto; gap: 1px 10px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+#channels a { font-weight: 600; text-decoration: none; }
+#channels .reason { grid-column: 1; font-size: 12px; color: var(--muted); }
+#channels .count { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-variant-numeric: tabular-nums; font-size: 12px; }

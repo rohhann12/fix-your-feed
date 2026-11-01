@@ -1,13 +1,9 @@
 import { searchCandidates, recentUploads, latestVideos } from './youtube.js';
 import { engage, scrapeFeed, markNotInterested } from './page.js';
+import { resolveProvider, ask } from './ai.js';
 
-const BRIDGE = 'http://127.0.0.1:4777';
-const DEFAULTS = {
-  creators: 15, videosPerCreator: 10, watchPerCreator: 3, watchSeconds: 20, workers: 3, minutes: 20,
-  like: true, subscribe: true, watch: true, notInterested: true,
-};
-const SECONDS_PER_VIDEO = 6;
 const CANDIDATES_TO_REVIEW = 60;
+const PERSIST_EVERY_MS = 300;
 
 const STEPS = [
   ['plan', 'Claude turns your description into search queries'],
@@ -18,83 +14,50 @@ const STEPS = [
   ['prune', 'Mark off-niche home feed videos "Not interested"'],
 ];
 
-const $ = (id) => document.getElementById(id);
-const form = $('form');
+const BADGE_COLORS = { running: '#666', stopping: '#666', stopped: '#666', done: '#2a8', failed: '#e5322d' };
 
-/** @type {{status: 'running'|'stopping'|'done'|'failed'|'stopped', steps: Record<string, {status: string, detail: string}>, channels: Array<any>, jobs: Array<any>, startedAt: number} | null} */
+/** @type {{status: 'running'|'stopping'|'done'|'failed'|'stopped', startedAt: number, finishedAt?: number, error?: string, steps: Record<string, {label: string, status: 'pending'|'active'|'done'|'failed'|'skipped', detail: string}>, channels: Array<any>, jobs: Array<any>} | null} */
 let run = null;
+let lastWrite = 0;
+let lastStatus = null;
 
-// ---------- settings ----------
+const isActive = () => run?.status === 'running' || run?.status === 'stopping';
 
-function readSettings() {
-  const s = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS)) {
-    const el = form.elements[key];
-    s[key] = el.type === 'checkbox' ? el.checked : clamp(Number(el.value), Number(el.min), Number(el.max));
+export function startRun(description, settings) {
+  if (isActive()) return { error: 'already running' };
+  run = {
+    status: 'running', startedAt: Date.now(), channels: [], jobs: [],
+    steps: Object.fromEntries(STEPS.map(([key, label]) => [key, { label, status: 'pending', detail: '' }])),
+  };
+  execute(description, settings).catch((e) => console.error('run crashed', e));
+  return { ok: true };
+}
+
+export function stopRun() {
+  if (run?.status === 'running') {
+    run.status = 'stopping';
+    persist();
   }
-  return s;
+  return { ok: true };
 }
 
-const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(n) ? n : lo));
-
-function estimateSeconds(s) {
-  const videos = s.creators * s.videosPerCreator;
-  const watching = s.watch ? s.creators * Math.min(s.watchPerCreator, s.videosPerCreator) * s.watchSeconds : 0;
-  return (videos * SECONDS_PER_VIDEO + watching) / s.workers + overheadSeconds(s);
+function badgeText() {
+  if (run.status === 'done') return '✓';
+  if (run.status === 'failed') return '!';
+  if (!isActive()) return '';
+  if (!run.jobs.length) return '…';
+  const finished = run.jobs.filter((j) => j.status === 'done' || j.status === 'failed').length;
+  return `${Math.floor((100 * finished) / run.jobs.length)}%`;
 }
 
-const overheadSeconds = (s) => 45 + (s.notInterested ? 45 : 0);
-
-function renderEstimate() {
-  const s = readSettings();
-  const fastest = Math.ceil(estimateSeconds(s) / 60);
-  $('estimate').textContent = fastest > s.minutes
-    ? `${s.creators * s.videosPerCreator} videos won't fit in ${s.minutes} min (needs ~${fastest}). Add windows or watch less.`
-    : `${s.creators * s.videosPerCreator} videos, spread over about ${s.minutes} min`;
-  chrome.storage.local.set({ settings: s, description: $('description').value });
+function persist() {
+  if (run.status === lastStatus && Date.now() - lastWrite < PERSIST_EVERY_MS) return;
+  lastStatus = run.status;
+  lastWrite = Date.now();
+  chrome.storage.session.set({ run });
+  chrome.action.setBadgeText({ text: badgeText() });
+  chrome.action.setBadgeBackgroundColor({ color: BADGE_COLORS[run.status] });
 }
-
-async function loadSettings() {
-  const { settings = {}, description = '' } = await chrome.storage.local.get(['settings', 'description']);
-  const s = { ...DEFAULTS, ...settings };
-  for (const [key, value] of Object.entries(s)) {
-    const el = form.elements[key];
-    if (el) el[el.type === 'checkbox' ? 'checked' : 'value'] = value;
-  }
-  $('description').value = description;
-  renderEstimate();
-}
-
-// ---------- bridge ----------
-
-async function bridge(path, body) {
-  const res = await fetch(`${BRIDGE}/${path}`, {
-    method: body ? 'POST' : 'GET',
-    headers: { 'content-type': 'application/json', 'x-feed-fixer': '1' },
-    body: body && JSON.stringify(body),
-    signal: AbortSignal.timeout(150_000),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? `bridge ${path} failed`);
-  return json;
-}
-
-async function checkBridge() {
-  const pill = $('bridge');
-  try {
-    const { model } = await bridge('health');
-    pill.textContent = `Claude Code bridge connected (${model})`;
-    pill.className = 'pill ok';
-    return true;
-  } catch (e) {
-    console.error('bridge health check failed', e);
-    pill.textContent = `bridge unreachable: ${e.message}`;
-    pill.className = 'pill bad';
-    return false;
-  }
-}
-
-// ---------- browser workers ----------
 
 function loadTab(tabId, url, timeoutMs = 25000) {
   return new Promise((resolve, reject) => {
@@ -119,22 +82,19 @@ async function inject(tabId, func, args, timeoutMs) {
 }
 
 // macOS treats a fully covered window as hidden, which throttles timers and can pause
-// playback. So the dashboard shrinks to a left column and workers tile the rest, never overlapping.
+// playback. So workers tile the primary display's work area, never overlapping.
 async function openWorkers(count) {
-  const { availLeft: x0, availTop: y0, availWidth: W, availHeight: H } = screen;
-  const dashWidth = Math.min(420, Math.floor(W / 3));
-  const me = await chrome.windows.getCurrent();
-  await chrome.windows.update(me.id, { state: 'normal', left: x0, top: y0, width: dashWidth, height: H });
-
+  const displays = await chrome.system.display.getInfo();
+  const { left: x0, top: y0, width: W, height: H } = (displays.find((d) => d.isPrimary) ?? displays[0]).workArea;
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);
-  const w = Math.floor((W - dashWidth) / cols);
+  const w = Math.floor(W / cols);
   const h = Math.floor(H / rows);
   const windows = await Promise.all(
     Array.from({ length: count }, (_, i) =>
       chrome.windows.create({
         url: 'about:blank', type: 'popup', focused: false, width: w, height: h,
-        left: x0 + dashWidth + (i % cols) * w, top: y0 + Math.floor(i / cols) * h,
+        left: x0 + (i % cols) * w, top: y0 + Math.floor(i / cols) * h,
       }),
     ),
   );
@@ -148,15 +108,13 @@ async function closeWorkers(workers) {
   await chrome.storage.session.remove('workerWindows');
 }
 
-// ---------- the run ----------
-
 class Stopped extends Error {}
 
 async function step(key, fn) {
   if (run.status !== 'running') throw new Stopped('stopped');
   const s = run.steps[key];
   s.status = 'active';
-  render();
+  persist();
   try {
     s.detail = (await fn()) ?? '';
     s.status = 'done';
@@ -165,7 +123,7 @@ async function step(key, fn) {
     s.detail = e.message;
     throw e;
   } finally {
-    render();
+    persist();
   }
 }
 
@@ -217,7 +175,7 @@ async function runJobs(workers, s) {
       const job = run.status === 'running' && queue.shift();
       if (!job) break;
       job.status = 'running';
-      render();
+      persist();
       if (!(await chrome.tabs.get(tabId).catch(() => null))) {
         job.status = 'queued';
         queue.unshift(job);
@@ -234,25 +192,23 @@ async function runJobs(workers, s) {
         job.error = e.message;
         job.status = 'failed';
       }
-      render();
+      persist();
     }
   }));
   if (signedOut) throw new Error('You are not signed in to YouTube in this Chrome profile.');
 }
 
-async function start(description, s) {
-  run = {
-    status: 'running', startedAt: Date.now(), channels: [], jobs: [],
-    steps: Object.fromEntries(STEPS.map(([key]) => [key, { status: 'pending', detail: '' }])),
-  };
-  render();
+async function execute(description, s) {
+  const ticker = setInterval(persist, 1000);
+  persist();
   let workers = [];
   try {
-    if (!(await checkBridge())) throw new Error('Claude Code bridge is offline. Run `npm run bridge` in the project folder.');
+    const provider = await resolveProvider();
+    if (provider.kind === 'none') throw new Error('No Claude Code bridge and no API key. Open the popup to add one.');
 
     let plan;
     await step('plan', async () => {
-      plan = await bridge('plan', { description });
+      plan = await ask(provider, 'plan', { description });
       return plan.niche;
     });
 
@@ -269,7 +225,7 @@ async function start(description, s) {
     await step('pick', async () => {
       const compact = candidates.map(({ id, name, subscribers, description: d, titles, daysSinceUpload }) =>
         ({ id, name, subscribers, about: d, recent: titles, daysSinceUpload }));
-      const { channels } = await bridge('pick', { description, plan, candidates: compact, count: s.creators });
+      const { channels } = await ask(provider, 'pick', { description, plan, candidates: compact, count: s.creators });
       const byId = new Map(candidates.map((c) => [c.id, c]));
       const seen = new Set();
       run.channels = channels
@@ -307,7 +263,7 @@ async function start(description, s) {
         await loadTab(tabId, 'https://www.youtube.com/');
         const tiles = await inject(tabId, scrapeFeed, [40], 30000);
         if (!tiles?.length) return 'no feed videos found';
-        const { offNiche } = await bridge('classify', { description, plan, tiles });
+        const { offNiche } = await ask(provider, 'classify', { description, plan, tiles });
         const marked = offNiche.length ? await inject(tabId, markNotInterested, [offNiche], 120000) : [];
         return `${marked.length} of ${tiles.length} feed videos marked "Not interested"`;
       });
@@ -321,88 +277,12 @@ async function start(description, s) {
       run.error = e.message;
     }
   } finally {
-    for (const s of Object.values(run.steps)) {
-      if (s.status === 'pending') Object.assign(s, { status: 'skipped', detail: 'not run' });
+    for (const st of Object.values(run.steps)) {
+      if (st.status === 'pending') Object.assign(st, { status: 'skipped', detail: 'not run' });
     }
     await closeWorkers(workers);
     run.finishedAt = Date.now();
-    render();
+    clearInterval(ticker);
+    persist();
   }
 }
-
-// ---------- rendering ----------
-
-let frame = 0;
-function render() {
-  cancelAnimationFrame(frame);
-  frame = requestAnimationFrame(draw);
-}
-
-function draw() {
-  if (!run) return;
-  const active = run.status === 'running' || run.status === 'stopping';
-  $('run').hidden = false;
-  $('start').disabled = active;
-  $('stop').hidden = !active;
-  $('stop').disabled = run.status === 'stopping';
-
-  $('steps').replaceChildren(...STEPS.map(([key, label]) => {
-    const li = document.createElement('li');
-    const { status, detail } = run.steps[key];
-    li.className = status;
-    li.textContent = label;
-    if (detail) li.append(Object.assign(document.createElement('span'), { className: 'detail', textContent: detail }));
-    return li;
-  }));
-
-  const finished = run.jobs.filter((j) => j.status === 'done' || j.status === 'failed').length;
-  const failed = run.jobs.filter((j) => j.status === 'failed');
-  $('bar').style.width = run.jobs.length ? `${(100 * finished) / run.jobs.length}%` : '0';
-  const elapsed = Math.round(((run.finishedAt ?? Date.now()) - run.startedAt) / 1000);
-  const parts = [
-    `${finished}/${run.jobs.length} videos`,
-    `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`,
-    failed.length && `${failed.length} failed (${[...new Set(failed.map((j) => j.error))].slice(0, 2).join('; ')})`,
-    run.status === 'done' && 'Done. Refresh youtube.com to see your new feed.',
-    run.status === 'stopped' && 'Stopped.',
-    run.error && `Error: ${run.error}`,
-  ];
-  $('summary').textContent = parts.filter(Boolean).join(' · ');
-
-  $('channels').replaceChildren(...run.channels.map((c) => {
-    const li = document.createElement('li');
-    const jobs = run.jobs.filter((j) => j.channelId === c.id);
-    const done = jobs.filter((j) => j.status === 'done').length;
-    const a = Object.assign(document.createElement('a'), {
-      href: `https://www.youtube.com/channel/${c.id}`, target: '_blank', textContent: `${c.name} `,
-    });
-    a.append(Object.assign(document.createElement('small'), { textContent: c.subscribers }));
-    li.append(
-      a,
-      Object.assign(document.createElement('span'), { className: 'count', textContent: `${done}/${jobs.length}` }),
-      Object.assign(document.createElement('span'), { className: 'reason', textContent: c.reason }),
-    );
-    return li;
-  }));
-}
-
-setInterval(() => run?.status === 'running' && render(), 1000);
-
-// ---------- wiring ----------
-
-form.addEventListener('input', renderEstimate);
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const description = $('description').value.trim();
-  if (description) start(description, readSettings());
-});
-$('stop').addEventListener('click', () => {
-  if (run?.status === 'running') run.status = 'stopping';
-  render();
-});
-window.addEventListener('beforeunload', (e) => {
-  if (run?.status === 'running') e.preventDefault();
-});
-
-loadSettings();
-checkBridge();

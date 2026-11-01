@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Feed Fixer",
-  "version": "0.1.0",
-  "description": "Describe the YouTube feed you want. Claude Code finds creators in that niche and the extension trains your algorithm toward them.",
-  "action": { "default_title": "Feed Fixer" },
-  "background": { "service_worker": "background.js" },
-  "permissions": ["tabs", "scripting", "storage"],
-  "host_permissions": ["https://www.youtube.com/*", "http://127.0.0.1/*"]
+  "version": "0.2.0",
+  "description": "Describe the YouTube feed you want. Claude finds creators in that niche and the extension trains your algorithm toward them.",
+  "action": { "default_title": "Feed Fixer", "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": ["tabs", "scripting", "storage", "system.display"],
+  "host_permissions": ["https://www.youtube.com/*", "http://127.0.0.1/*", "https://api.anthropic.com/*"]
 }

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Feed Fixer</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Feed Fixer</h1>
+      <span id="provider" class="pill">checking…</span>
+      <a id="changeKey" href="#" hidden>change</a>
+    </header>
+
+    <form id="keyForm" class="notice" hidden>
+      <p>Claude Code bridge not found. Paste an Anthropic API key to use Feed Fixer without it.</p>
+      <input id="apiKey" type="password" placeholder="sk-ant-…" autocomplete="off" required />
+      <div class="actions">
+        <button id="saveKey" type="submit">Save key</button>
+        <button id="removeKey" type="button" class="secondary" hidden>Remove key</button>
+      </div>
+      <p id="keyError" class="error"></p>
+      <p class="hint">Create one at <a href="https://platform.claude.com/settings/keys" target="_blank">platform.claude.com/settings/keys</a>.</p>
+    </form>
+
+    <form id="form">
+      <label for="description">What should your YouTube feed look like?</label>
+      <textarea id="description" rows="3" required
+        placeholder="e.g. calm hand-tool woodworking and furniture builds, long process videos, no clickbait or drama"></textarea>
+
+      <details>
+        <summary>Settings</summary>
+        <div class="grid">
+          <label>Creators <input type="number" name="creators" min="5" max="25" /></label>
+          <label>Videos per creator <input type="number" name="videosPerCreator" min="1" max="20" /></label>
+          <label>Watch latest N per creator <input type="number" name="watchPerCreator" min="0" max="10" /></label>
+          <label>Seconds watched each <input type="number" name="watchSeconds" min="5" max="120" /></label>
+          <label>Parallel windows <input type="number" name="workers" min="1" max="10" /></label>
+          <label>Target minutes <input type="number" name="minutes" min="5" max="60" /></label>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" name="like" /> Like videos</label>
+          <label><input type="checkbox" name="subscribe" /> Subscribe to creators</label>
+          <label><input type="checkbox" name="watch" /> Watch part of videos</label>
+          <label><input type="checkbox" name="notInterested" /> "Not interested" on off-niche feed videos</label>
+        </div>
+      </details>
+
+      <p id="estimate"></p>
+      <div class="actions">
+        <button id="start" type="submit" disabled>Fix my feed</button>
+        <button id="stop" type="button" class="secondary" hidden>Stop</button>
+      </div>
+    </form>
+
+    <section id="run" hidden>
+      <ol id="steps"></ol>
+      <div id="progress"><div id="bar"></div></div>
+      <p id="summary"></p>
+      <ul id="channels"></ul>
+      <p class="hint">You can close this popup. The run continues in the background.</p>
+    </section>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
