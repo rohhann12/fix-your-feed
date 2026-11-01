@@ -1,0 +1,9 @@
+{
+  "name": "feed",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bridge": "node bridge/server.js"
+  },
+  "engines": { "node": ">=20" }
+}
