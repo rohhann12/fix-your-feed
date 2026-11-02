@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -50 1140 650" width="1140" height="650" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">
+<rect x="-40" y="-50" width="1140" height="650" fill="#fff"/>
+<text x="330" y="-2" font-size="28" fill="#1e1e1e">Feed Fixer: how a run flows</text>
+<text x="250" y="24" font-size="16" fill="#757575">Popup, background service worker, Claude (bridge or API key), YouTube. State lives in storage.session.</text>
+<rect x="20" y="50" width="1040" height="170" rx="10" fill="#dbe4ff" fill-opacity="0.35" stroke="#4a9eed" stroke-width="1"/>
+<text x="36" y="72" font-size="16" fill="#2563eb">Chrome extension</text>
+<rect x="40" y="90" width="240" height="100" rx="10" fill="#a5d8ff" fill-opacity="1" stroke="#4a9eed" stroke-width="2"/>
+<text x="160" y="119.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Toolbar popup</text><text x="160" y="140" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">popup.html / popup.js</text><text x="160" y="160.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">describe feed, settings, progress</text>
+<rect x="440" y="80" width="380" height="120" rx="10" fill="#d0bfff" fill-opacity="1" stroke="#8b5cf6" stroke-width="2"/>
+<text x="630" y="119.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Background service worker</text><text x="630" y="140" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">background.js + run.js</text><text x="630" y="160.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">plan, search, pick, videos, engage, prune</text>
+<line x1="280" y1="115" x2="440" y2="115" stroke="#4a9eed" stroke-width="2"  marker-end="url(#m-a1)"/>
+<defs><marker id="m-a1" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4a9eed"/></marker></defs>
+<rect x="302.2" y="103" width="115.60000000000001" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="360" y="115" font-size="16" fill="#4a9eed" text-anchor="middle" dominant-baseline="middle">start / stop</text>
+<line x1="440" y1="170" x2="280" y2="170" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#m-a2)"/>
+<defs><marker id="m-a2" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker></defs>
+<rect x="315.4" y="158" width="89.2" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="360" y="170" font-size="16" fill="#8b5cf6" text-anchor="middle" dominant-baseline="middle">run state</text>
+<rect x="870" y="105" width="160" height="70" rx="10" fill="#fff3bf" fill-opacity="1" stroke="#f59e0b" stroke-width="2"/>
+<text x="950" y="129.6" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Toolbar badge</text><text x="950" y="150.4" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">42% / done</text>
+<line x1="820" y1="140" x2="870" y2="140" stroke="#8b5cf6" stroke-width="2"  marker-end="url(#m-a3)"/>
+<defs><marker id="m-a3" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker></defs>
+<rect x="20" y="250" width="500" height="330" rx="10" fill="#e5dbff" fill-opacity="0.35" stroke="#8b5cf6" stroke-width="1"/>
+<text x="36" y="572" font-size="16" fill="#6d28d9">AI steps (plan, pick, classify)</text>
+<rect x="60" y="290" width="200" height="80" rx="10" fill="#d0bfff" fill-opacity="1" stroke="#8b5cf6" stroke-width="2"/>
+<text x="160" y="319.6" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">ai.js</text><text x="160" y="340.4" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">provider = bridge | api key</text>
+<rect x="300" y="290" width="200" height="80" rx="10" fill="#fff3bf" fill-opacity="1" stroke="#f59e0b" stroke-width="2"/>
+<text x="400" y="309.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">tasks.js</text><text x="400" y="330" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">prompts + JSON schemas</text><text x="400" y="350.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">(shared by both paths)</text>
+<line x1="300" y1="330" x2="260" y2="330" stroke="#f59e0b" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#m-a4)"/>
+<defs><marker id="m-a4" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker></defs>
+<rect x="60" y="420" width="200" height="90" rx="10" fill="#ffd8a8" fill-opacity="1" stroke="#f59e0b" stroke-width="2"/>
+<text x="160" y="444.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Local bridge</text><text x="160" y="465" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">127.0.0.1:4777</text><text x="160" y="485.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">runs claude -p</text>
+<rect x="300" y="420" width="200" height="90" rx="10" fill="#c3fae8" fill-opacity="1" stroke="#0d9488" stroke-width="2"/>
+<text x="400" y="444.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Anthropic Messages API</text><text x="400" y="465" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">api.anthropic.com</text><text x="400" y="485.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">(pasted API key)</text>
+<line x1="140" y1="370" x2="140" y2="420" stroke="#f59e0b" stroke-width="2"  marker-end="url(#m-a5)"/>
+<defs><marker id="m-a5" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker></defs>
+<rect x="69" y="383" width="142" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="140" y="395" font-size="16" fill="#f59e0b" text-anchor="middle" dominant-baseline="middle">if bridge is up</text>
+<line x1="220" y1="370" x2="380" y2="420" stroke="#0d9488" stroke-width="2"  marker-end="url(#m-a6)"/>
+<defs><marker id="m-a6" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker></defs>
+<rect x="277.4" y="383" width="45.2" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="300" y="395" font-size="16" fill="#0d9488" text-anchor="middle" dominant-baseline="middle">else</text>
+<line x1="400" y1="370" x2="400" y2="420" stroke="#f59e0b" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#m-a7)"/>
+<defs><marker id="m-a7" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker></defs>
+<rect x="60" y="530" width="200" height="40" rx="10" fill="#ffd8a8" fill-opacity="1" stroke="#f59e0b" stroke-width="2"/>
+<text x="160" y="550" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Claude Code login (no key)</text>
+<line x1="160" y1="510" x2="160" y2="530" stroke="#f59e0b" stroke-width="2"  marker-end="url(#m-a8)"/>
+<defs><marker id="m-a8" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker></defs>
+<line x1="485" y1="200" x2="160" y2="290" stroke="#8b5cf6" stroke-width="2"  marker-end="url(#m-a9)"/>
+<defs><marker id="m-a9" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker></defs>
+<rect x="277.9" y="233" width="89.2" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="322.5" y="245" font-size="16" fill="#8b5cf6" text-anchor="middle" dominant-baseline="middle">ask(task)</text>
+<rect x="560" y="250" width="500" height="330" rx="10" fill="#d3f9d8" fill-opacity="0.35" stroke="#22c55e" stroke-width="1"/>
+<text x="576" y="572" font-size="16" fill="#15803d">YouTube</text>
+<rect x="590" y="290" width="210" height="90" rx="10" fill="#b2f2bb" fill-opacity="1" stroke="#22c55e" stroke-width="2"/>
+<text x="695" y="314.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">youtube.js</text><text x="695" y="335" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">search, RSS, channel pages</text><text x="695" y="355.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">(fetch, signed-in cookies)</text>
+<rect x="830" y="290" width="210" height="90" rx="10" fill="#ffc9c9" fill-opacity="1" stroke="#ef4444" stroke-width="2"/>
+<text x="935" y="314.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">Worker popup windows</text><text x="935" y="335" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">(tiled, never overlapping)</text><text x="935" y="355.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">page.js injected</text>
+<rect x="700" y="450" width="230" height="70" rx="10" fill="#ffc9c9" fill-opacity="1" stroke="#ef4444" stroke-width="2"/>
+<text x="815" y="464.2" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">youtube.com</text><text x="815" y="485" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">like, subscribe, watch,</text><text x="815" y="505.8" font-size="16" fill="#1e1e1e" text-anchor="middle" dominant-baseline="middle">&quot;Not interested&quot;</text>
+<line x1="649" y1="200" x2="695" y2="290" stroke="#22c55e" stroke-width="2"  marker-end="url(#m-a10)"/>
+<defs><marker id="m-a10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/></marker></defs>
+<rect x="601" y="233" width="142" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="672" y="245" font-size="16" fill="#22c55e" text-anchor="middle" dominant-baseline="middle">search / videos</text>
+<line x1="782" y1="200" x2="935" y2="290" stroke="#ef4444" stroke-width="2"  marker-end="url(#m-a11)"/>
+<defs><marker id="m-a11" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/></marker></defs>
+<rect x="791.9" y="233" width="133.20000000000002" height="24" rx="4" fill="#fff" fill-opacity="0.9"/>
+<text x="858.5" y="245" font-size="16" fill="#ef4444" text-anchor="middle" dominant-baseline="middle">engage / prune</text>
+<line x1="700" y1="380" x2="780" y2="450" stroke="#22c55e" stroke-width="2"  marker-end="url(#m-a12)"/>
+<defs><marker id="m-a12" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/></marker></defs>
+<line x1="930" y1="380" x2="840" y2="450" stroke="#ef4444" stroke-width="2"  marker-end="url(#m-a13)"/>
+<defs><marker id="m-a13" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/></marker></defs>
+</svg>

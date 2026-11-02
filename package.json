@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "bridge": "node bridge/server.js",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "smoke": "node scripts/smoke-popup.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
